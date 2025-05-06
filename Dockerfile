@@ -19,4 +19,4 @@ RUN python -c "from sentence_transformers import SentenceTransformer; \
     model.save('/app/models/all-MiniLM-L6-v2')"
 
 # Run the server
-ENTRYPOINT ["mcp-server-hubspot", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["mcp-server-hubspot"]
