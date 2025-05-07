@@ -1,37 +1,30 @@
-# Use Python base image with good wheel support
+# Use Python base image with prebuilt wheels
 FROM python:3.10-slim-bookworm
-
-# Install dependencies and Rust
-RUN apt-get update && apt-get install -y curl build-essential python3-dev git && \
-    curl https://sh.rustup.rs -sSf | bash -s -- -y
-
-# Set PATH so future RUN steps can find cargo
-ENV PATH="/root/.cargo/bin:$PATH"
 
 # Set working directory
 WORKDIR /app
 
-# Copy your project into the container
+# Install build tools (no Rust needed if wheels are available)
+RUN apt-get update && apt-get install -y \
+    curl \
+    build-essential \
+    python3-dev \
+    git \
+ && rm -rf /var/lib/apt/lists/*
+
+# Copy project files
 COPY . /app
 
-# Upgrade base pip tools
-RUN python -m pip install --upgrade pip setuptools wheel
+# Upgrade pip-related tools
+RUN pip install --upgrade pip setuptools wheel
 
-# Install the package (and its dependencies)
-RUN pip install --no-cache-dir .
+# Install the tool and dependencies (setuptools will handle src layout)
+RUN pip install .
 
-# ✅ Install pinned dependencies to avoid breaking changes
-RUN apt-get update && apt-get install -y gcc g++ python3-dev
-RUN pip install --no-cache-dir \
-  "transformers==4.29.2" \
-  "sentencepiece==0.1.99" \
-  "sentence-transformers==2.2.2" \
-  "huggingface_hub==0.14.1"
-
-# Pre-download sentence-transformers model
+# Preload the sentence-transformers model
 RUN mkdir -p /app/models && \
     python -c "from sentence_transformers import SentenceTransformer; \
     model = SentenceTransformer('all-MiniLM-L6-v2'); \
     model.save('/app/models/all-MiniLM-L6-v2')"
 
-# No need for CMD or ENTRYPOINT if you're using stdio mode
+# No ENTRYPOINT if using via stdio
