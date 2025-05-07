@@ -14,8 +14,19 @@ WORKDIR /app
 # Copy your project into the container
 COPY . /app
 
+# Upgrade base pip tools
+RUN python -m pip install --upgrade pip setuptools wheel
+
 # Install the package (and its dependencies)
 RUN pip install --no-cache-dir .
+
+# ✅ Install pinned dependencies to avoid breaking changes
+RUN apt-get update && apt-get install -y gcc g++ python3-dev
+RUN pip install --no-cache-dir \
+  "transformers==4.29.2" \
+  "sentencepiece==0.1.99" \
+  "sentence-transformers==2.2.2" \
+  "huggingface_hub==0.14.1"
 
 # Pre-download sentence-transformers model
 RUN mkdir -p /app/models && \
