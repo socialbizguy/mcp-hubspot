@@ -7,6 +7,11 @@ WORKDIR /app
 # Copy the entire project
 COPY . /app
 
+# Install Rust and required build tools
+RUN apt-get update && apt-get install -y curl build-essential python3-dev git && \
+    curl https://sh.rustup.rs -sSf | bash -s -- -y && \
+    export PATH="/root/.cargo/bin:$PATH"
+
 # Install the package
 RUN pip install --no-cache-dir .
 
